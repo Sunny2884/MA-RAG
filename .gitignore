@@ -6,3 +6,8 @@ runs/
 .*/
 .env
 note.md
+MedRAG_textbooks/
+corpus/
+MedCPT-Cross-Encoder/
+MedCPT-Cross-Encoder.zip
+ncbi/

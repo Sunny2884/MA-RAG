@@ -1,11 +1,15 @@
 import os
 import numpy as np
 from copy import deepcopy
+from dotenv import load_dotenv
 from logging import Logger
 from openai import OpenAI
 from openai.types.chat.chat_completion import ChatCompletion
 from time import sleep
 from typing import List, Dict, Optional
+
+
+load_dotenv()
 
 
 EXTRA_BODY_MAP = {
@@ -29,7 +33,7 @@ class CustomLanguageModel:
         :param top_logprobs: 0 means not use logprobs, defaults to 0.
         '''
         extra_body = deepcopy(EXTRA_BODY_MAP.get(self.llm_name.lower(), DEFAULT_EXTRA_BODY))
-        if enable_thinking:
+        if enable_thinking and 'chat_template_kwargs' in extra_body:
             extra_body['chat_template_kwargs']['enable_thinking'] = True
 
         if top_logprobs:
@@ -41,7 +45,7 @@ class CustomLanguageModel:
 
         if continue_final_message:
             extra_body['continue_final_message'] = True
-            extra_body['chat_template_kwargs']['add_generation_prompt'] = False
+            extra_body.setdefault('chat_template_kwargs', {})['add_generation_prompt'] = False
 
         for _ in range(self.max_retry_times):
             try:

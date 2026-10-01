@@ -161,8 +161,7 @@ class Retriever:
             self.metadatas = None
             self.embedding_function = None
             if self.index_dir.exists():
-                cache_index_dir = '/cache/corpus/' + str(self.index_dir.absolute()).split('corpus/')[-1]
-                self.index = LuceneSearcher(cache_index_dir)
+                self.index = LuceneSearcher(str(self.index_dir.absolute()))
             else:
                 import os
                 os.system("python -m pyserini.index.lucene --collection JsonCollection --input {:s} --index {:s} --generator DefaultLuceneDocumentGenerator --threads 16".format(str(self.chunk_dir.absolute()), str(self.index_dir.absolute())))
@@ -286,7 +285,7 @@ class RetrievalSystem:
             elif 'medcpt' in self.reranker_name.lower():
                 from transformers import AutoTokenizer, AutoModelForSequenceClassification
                 self.reranker_tok = AutoTokenizer.from_pretrained(reranker_paths[self.reranker_name])
-                self.reranker = AutoModelForSequenceClassification.from_pretrained(reranker_paths[self.reranker_name], device_map='auto')
+                self.reranker = AutoModelForSequenceClassification.from_pretrained(reranker_paths[self.reranker_name]).to(device).eval()
             else:
                 raise NotImplementedError
 
@@ -525,4 +524,4 @@ async def process_batch(total_k: int, use_reranker: bool, min_score: float):
 
 if __name__ == '__main__':
     local_args = init_retriever()
-    uvicorn.run('microservice.RetrievalSystem:app', host='0.0.0.0', port=local_args.port, log_level='info', loop='uvloop', workers=local_args.num_workers)
+    uvicorn.run(app, host='0.0.0.0', port=local_args.port, log_level='info', loop='uvloop', workers=local_args.num_workers)

@@ -121,10 +121,11 @@ def inference(system: str, prompt: str, model: CustomLanguageModel, enable_think
         responses = process_response(model.generate(messages, temperature=temperature, max_new_tokens=max_new_tokens, enable_thinking=enable_thinking, top_logprobs=20, **kwargs))
         try:
             for response in responses:
-                if enable_thinking:
+                if enable_thinking and '</think>' in response['text']:
                     reason_content, content = response['text'].rsplit('</think>', maxsplit=1)
                     if not check_format or format_check(content.strip()):
-                        return_infos.append([reason_content.split('<think>', maxsplit=1)[1].strip(), content.strip(), response])
+                        reason_content = reason_content.split('<think>', maxsplit=1)[-1].strip()
+                        return_infos.append([reason_content, content.strip(), response])
                 else:
                     content = response['text']
                     if not check_format or format_check(content.strip()):
