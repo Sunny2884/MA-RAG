@@ -6,7 +6,7 @@ nohup env CUDA_VISIBLE_DEVICES=6,7 \
     /home/mmc_stu/hdd_data/lyj/llm_weights/Qwen/Qwen3-8B \
     --served-model-name qwen3-8b \
     --tensor-parallel-size 2 \
-    --max-model-len 8192 \
+    --max-model-len 32768 \
     --max-num-seqs 4 \
     --gpu-memory-utilization 0.85 \
     --api-key dummy \
