@@ -3,7 +3,7 @@ cd /home/mmc_stu/hdd_data/lyj/project/MA_RAG || exit 1
 mkdir -p logs
 
 nohup env PYTHONUNBUFFERED=1 \
-    /home/mmc_stu/anaconda3/envs/l-marag/bin/python ma_rag_entropy.py \
+    /home/mmc_stu/anaconda3/envs/l-marag-c/bin/python ma_rag_entropy.py \
     --dataset-path ./datasets/MMLU-PRO.json \
     --model-name qwen3-8b \
     --exp int_mmlu_pro_8x8 \
