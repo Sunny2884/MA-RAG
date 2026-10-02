@@ -3,6 +3,7 @@ temp.*
 temp/
 wandb/
 runs/
+logs/
 .*/
 .env
 note.md

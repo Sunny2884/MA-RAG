@@ -1,11 +1,15 @@
-export CUDA_VISIBLE_DEVICES=0
-vllm serve Qwen/Qwen3-8B \
+#!/usr/bin/env bash
+mkdir -p /home/mmc_stu/hdd_data/lyj/project/MA_RAG/logs
+
+nohup env CUDA_VISIBLE_DEVICES=6,7 \
+    /home/mmc_stu/anaconda3/envs/l-qwen3-vllm/bin/vllm serve \
+    /home/mmc_stu/hdd_data/lyj/llm_weights/Qwen/Qwen3-8B \
     --served-model-name qwen3-8b \
-    --api-key "dummy" \
-    --tensor-parallel-size 1 \
-    --max-model-len 32768 \
-    --max-num-seqs 16 \
-    --gpu-memory-utilization 0.95 \
-    --dtype auto \
+    --tensor-parallel-size 2 \
+    --max-model-len 8192 \
+    --max-num-seqs 4 \
+    --gpu-memory-utilization 0.85 \
+    --api-key dummy \
+    --host 127.0.0.1 \
     --port 8000 \
-    --host 0.0.0.0 \
+    > /home/mmc_stu/hdd_data/lyj/project/MA_RAG/logs/qwen3_8b.log 2>&1 < /dev/null &
