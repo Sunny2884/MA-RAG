@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+source /home/mmc_stu/anaconda3/etc/profile.d/conda.sh || exit 1
+conda activate l-qwen3-vllm || exit 1
 mkdir -p /home/mmc_stu/hdd_data/lyj/project/MA_RAG/logs
 
 nohup env CUDA_VISIBLE_DEVICES=6,7 \
-    /home/mmc_stu/anaconda3/envs/l-qwen3-vllm/bin/vllm serve \
+    vllm serve \
     /home/mmc_stu/hdd_data/lyj/llm_weights/Qwen/Qwen3-8B \
     --served-model-name qwen3-8b \
     --tensor-parallel-size 2 \
