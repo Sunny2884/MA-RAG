@@ -6,7 +6,6 @@ runs/
 logs/
 .*/
 .env
-note.md
 MedRAG_textbooks/
 corpus/
 MedCPT-Cross-Encoder/
