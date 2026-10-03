@@ -11,6 +11,7 @@ parser.add_argument('--base-url', type=str, default=None)
 parser.add_argument('--exp', '-e', type=str, default='test', help='Experiment name.')
 parser.add_argument('--num-workers', '-nw', type=int, default=8, help='Number of inferences per round.')
 parser.add_argument('--num-round', '-nr', type=int, default=8, help='Number of round.')
+parser.add_argument('--no-entropy-ranking', action='store_true', help='Keep previous answers in generation order between rounds.')
 parser.add_argument('--start-id', '-si', type=int, default=0, help='Evaluate the dataset from the start-id to end-id, both closed.')
 parser.add_argument('--end-id', '-ei', type=int, default=-1)
 local_args = parser.parse_args()
@@ -90,6 +91,27 @@ Please analyze the previous answers and then re-answer.
 ---
 
 The above are the question along with the assistant's previous answers, and some relevant documents. Please analyze and then re-answer. Please give your response towards **lower entropy**. Give your analysis and final answer.''')
+user_prompt_round_unranked = Template('''\
+Below is a multiple-choice question.
+### Question
+{{question}}
+
+### Options
+{{options}}
+
+### Documents
+{{documents}}
+
+---
+
+I will provide several assistant's previous answers, which may be incorrect.
+Please analyze the previous answers and then re-answer.
+
+{{answers}}
+
+---
+
+The above are the question along with the assistant's previous answers, and some relevant documents. Please analyze and then re-answer. Please give your analysis and final answer.''')
 
 system_prompt_query = '''\
 ### Role & Goal:
@@ -132,7 +154,8 @@ for dataset in tqdm(datasets, ncols=100):
         if round_id == 1:
             prompt = user_prompt.render(question=dataset['question'], options=dataset['option_str'])
         else:
-            prompt = user_prompt_round.render(question=dataset['question'], options=dataset['option_str'], answers='\n\n'.join(previous_answers), documents=documents)
+            round_prompt = user_prompt_round_unranked if local_args.no_entropy_ranking else user_prompt_round
+            prompt = round_prompt.render(question=dataset['question'], options=dataset['option_str'], answers='\n\n'.join(previous_answers), documents=documents)
 
         results = inference(system_prompt, prompt, model, n=local_args.num_workers)
 
@@ -189,11 +212,12 @@ for dataset in tqdm(datasets, ncols=100):
         else:
             documents = 'null'
 
-        # rerank previous answers by their entropies
-        previous_answer_entropies = [np.mean(result['token_entropies']) for result in round_results]
-        entropy_ids = np.argsort(previous_answer_entropies)[::-1]
-        previous_answer_contents = [previous_answer_contents[i] for i in entropy_ids]
-        previous_answers = [f"{i}. The assistant's previous answer is (Entropy {answer_entropy.item():.2f}):\n" + answer for i, (answer, answer_entropy) in enumerate(zip(previous_answer_contents, sorted(previous_answer_entropies, reverse=True)), start=1)]
+        if not local_args.no_entropy_ranking:
+            # Rerank previous answers by their entropies.
+            previous_answer_entropies = [np.mean(result['token_entropies']) for result in round_results]
+            entropy_ids = np.argsort(previous_answer_entropies)[::-1]
+            previous_answer_contents = [previous_answer_contents[i] for i in entropy_ids]
+            previous_answers = [f"{i}. The assistant's previous answer is (Entropy {answer_entropy.item():.2f}):\n" + answer for i, (answer, answer_entropy) in enumerate(zip(previous_answer_contents, sorted(previous_answer_entropies, reverse=True)), start=1)]
 
 # calculate accuracy
 calculate_accuracy(log_dir / 'evaluations')
