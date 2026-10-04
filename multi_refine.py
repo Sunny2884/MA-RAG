@@ -42,6 +42,7 @@ def parse_args():
     parser.add_argument('--dataset-path', type=Path, default=Path('./datasets/MMLU-PRO.json'))
     parser.add_argument('--model-name', default='qwen3-8b')
     parser.add_argument('--base-url', default=None)
+    parser.add_argument('--method', default='multi-refine', choices=['multi-refine', 'qwen3-baseline'])
     parser.add_argument('--exp', default='multi_refine_mmlu_pro_8x8')
     parser.add_argument('--num-workers', type=int, default=8)
     parser.add_argument('--num-round', type=int, default=8)
@@ -62,7 +63,7 @@ def main():
     if args.num_workers < 1 or args.num_round < 1:
         raise ValueError('--num-workers and --num-round must be positive')
 
-    log_dir = Path(f'runs/multi-refine/{args.dataset_path.stem}/{args.model_name}/exp_{args.exp}'.lower())
+    log_dir = Path(f'runs/{args.method}/{args.dataset_path.stem}/{args.model_name}/exp_{args.exp}'.lower())
     result_dir = log_dir / 'evaluations'
     result_dir.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(level=logging.WARNING, filename=log_dir / 'logging.log',
